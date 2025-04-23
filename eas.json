@@ -1,0 +1,20 @@
+{
+    "cli": {
+      "version": ">= 5.9.3"
+    },
+    "build": {
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal"
+      },
+      "production": {
+        "autoIncrement": true,
+        "channel": "production",
+        "distribution": "store",
+        "runtimeVersion": "1.0.0" 
+      }
+    },
+    "submit": {
+      "production": {}
+    }
+  }
