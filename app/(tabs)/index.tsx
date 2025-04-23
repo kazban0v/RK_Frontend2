@@ -14,11 +14,12 @@ export default function Index() {
     const fetchNews = async () => {
       try {
         const response = await axios.get(
-          'https://newsapi.org/v2/top-headlines?country=us&apiKey=c5ea7f723f7841b4bd528c9f81646440' // Замените на ваш ключ
+          'https://newsapi.org/v2/top-headlines?country=ru&apiKey=c5ea7f723f7841b4bd528c9f81646440' // Изменяем country на ru
         );
         setArticles(response.data.articles);
         setLoading(false);
       } catch (err) {
+        console.error('Ошибка загрузки новостей:', err.message);
         setError('Не удалось загрузить новости');
         setLoading(false);
       }
