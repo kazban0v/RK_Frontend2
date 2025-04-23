@@ -14,13 +14,17 @@ export default function Index() {
     const fetchNews = async () => {
       try {
         const response = await axios.get(
-          'https://newsapi.org/v2/top-headlines?country=ru&apiKey=c5ea7f723f7841b4bd528c9f81646440' // Изменяем country на ru
+          'https://newsapi.org/v2/top-headlines?country=us&apiKey=c5ea7f723f7841b4bd528c9f81646440' // Country = us для английского языка
         );
-        setArticles(response.data.articles);
+        console.log('Full API response:', response.data); // Отладка: выводим полный ответ
+        const fetchedArticles = response.data.articles || [];
+        console.log('List of articles:', fetchedArticles); // Отладка: выводим статьи
+        setArticles(fetchedArticles);
         setLoading(false);
-      } catch (err) {
-        console.error('Ошибка загрузки новостей:', err.message);
-        setError('Не удалось загрузить новости');
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Error loading news:', errorMessage); // Отладка: выводим ошибку
+        setError('Failed to load news: ' + errorMessage);
         setLoading(false);
       }
     };
@@ -45,20 +49,24 @@ export default function Index() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <Text style={styles.title}>Главные новости</Text>
-      <FlatList
-        data={articles}
-        keyExtractor={(item) => item.url}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => router.push({ pathname: '../details', params: { article: JSON.stringify(item) } })}
-          >
-            <Text style={styles.itemTitle}>{item.title}</Text>
-            <Text style={styles.itemDescription}>{item.description}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <Text style={styles.title}>Top News</Text>
+      {articles.length === 0 ? (
+        <Text style={styles.emptyText}>No news to display.</Text>
+      ) : (
+        <FlatList
+          data={articles}
+          keyExtractor={(item) => item.url}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => router.push({ pathname: '../details', params: { article: JSON.stringify(item) } })}
+            >
+              <Text style={styles.itemTitle}>{item.title}</Text>
+              <Text style={styles.itemDescription}>{item.description || 'No description available'}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </GestureHandlerRootView>
   );
 }
@@ -96,6 +104,12 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: '#ff4444',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#ccc',
     textAlign: 'center',
     marginTop: 20,
   },

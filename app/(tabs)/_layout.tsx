@@ -31,6 +31,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="stickersmash"
+        options={{
+          title: 'StickerSmash',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'image' : 'image-outline'}
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="favorites"
         options={{
           title: 'Избранное',
