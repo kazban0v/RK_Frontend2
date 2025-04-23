@@ -36,6 +36,21 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a103c05d-c50f-4cee-bd9b-2f49f7ee98aa"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a103c05d-c50f-4cee-bd9b-2f49f7ee98aa"
+    },
+    "owner": "beybit0606"
   }
 }
