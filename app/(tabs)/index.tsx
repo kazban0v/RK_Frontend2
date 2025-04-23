@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useState, useRef, useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -25,7 +25,6 @@ export default function Index() {
   const [status, requestPermission] = MediaLibrary.usePermissions();
   const imageRef = useRef<View>(null);
 
-  // Запрашиваем разрешения при монтировании компонента
   useEffect(() => {
     const checkPermissions = async () => {
       if (status === null) {
@@ -83,7 +82,6 @@ export default function Index() {
   };
 
   const onSaveImageAsync = async () => {
-    // Проверяем, есть ли разрешение
     if (status?.status !== 'granted') {
       Alert.alert(
         'Требуется разрешение',
@@ -97,16 +95,18 @@ export default function Index() {
     }
 
     try {
+      // Захватываем изображение с помощью react-native-view-shot
       const localUri = await captureRef(imageRef, {
-        height: 440,
-        quality: 1,
         format: 'png',
+        quality: 1,
       });
 
+      // Проверяем, что URI корректен
+      console.log('Captured URI:', localUri);
+
+      // Сохраняем в медиа-библиотеку
       await MediaLibrary.saveToLibraryAsync(localUri);
-      if (localUri) {
-        Alert.alert('Изображение успешно сохранено!');
-      }
+      Alert.alert('Изображение успешно сохранено!');
     } catch (e) {
       console.log('Ошибка сохранения:', e);
       Alert.alert('Ошибка', 'Не удалось сохранить изображение. Попробуйте снова.');
