@@ -2,10 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "baseUrl": ".", // Указываем корень проекта
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"], // Псевдоним для импорта
+      "context/*": ["context/*"] // Добавляем путь для папки context
     }
   },
   "include": [

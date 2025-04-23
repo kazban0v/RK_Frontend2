@@ -1,143 +1,63 @@
 // app/(tabs)/index.tsx
-import { View, StyleSheet, Alert, Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import * as MediaLibrary from 'expo-media-library';
-import { captureRef } from 'react-native-view-shot';
-import { type ImageSource } from 'expo-image';
-
-import Button from '@/components/Button';
-import ImageViewer from '@/components/ImageViewer';
-import IconButton from '@/components/IconButton';
-import CircleButton from '@/components/CircleButton';
-import EmojiPicker from '@/components/EmojiPicker';
-import EmojiList from '@/components/EmojiList';
-import EmojiSticker from '@/components/EmojiSticker';
-
-const PlaceholderImage = require('@/assets/images/background-image.png');
+import axios from 'axios';
 
 export default function Index() {
-  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
-  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [pickedEmoji, setPickedEmoji] = useState<ImageSource | undefined>(undefined);
-  const [status, requestPermission] = MediaLibrary.usePermissions();
-  const imageRef = useRef<View>(null);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkPermissions = async () => {
-      if (status === null) {
-        const permissionResponse = await requestPermission();
-        if (!permissionResponse.granted) {
-          Alert.alert(
-            'Требуется разрешение',
-            'Приложению нужен доступ к медиа-библиотеке для сохранения изображений.',
-            [
-              { text: 'OK', onPress: () => requestPermission() },
-              { text: 'Отмена', style: 'cancel' },
-            ]
-          );
-        }
-      } else if (status.status !== 'granted') {
-        Alert.alert(
-          'Требуется разрешение',
-          'Приложению нужен доступ к медиа-библиотеке для сохранения изображений.',
-          [
-            { text: 'OK', onPress: () => requestPermission() },
-            { text: 'Отмена', style: 'cancel' },
-          ]
+    const fetchNews = async () => {
+      try {
+        const response = await axios.get(
+          'https://newsapi.org/v2/top-headlines?country=us&apiKey=c5ea7f723f7841b4bd528c9f81646440' // Замените на ваш ключ
         );
+        setArticles(response.data.articles);
+        setLoading(false);
+      } catch (err) {
+        setError('Не удалось загрузить новости');
+        setLoading(false);
       }
     };
-    checkPermissions();
-  }, [status, requestPermission]);
+    fetchNews();
+  }, []);
 
-  const pickImageAsync = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+  if (loading) {
+    return (
+      <GestureHandlerRootView style={styles.container}>
+        <ActivityIndicator size="large" color="#ffd33d" testID="activity-indicator" />
+      </GestureHandlerRootView>
+    );
+  }
 
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      setShowAppOptions(true);
-    } else {
-      Alert.alert('Вы не выбрали изображение.');
-    }
-  };
-
-  const onReset = () => {
-    setShowAppOptions(false);
-    setPickedEmoji(undefined);
-  };
-
-  const onAddSticker = () => {
-    setIsModalVisible(true);
-  };
-
-  const onModalClose = () => {
-    setIsModalVisible(false);
-  };
-
-  const onSaveImageAsync = async () => {
-    if (status?.status !== 'granted') {
-      Alert.alert(
-        'Требуется разрешение',
-        'Приложению нужен доступ к медиа-библиотеке для сохранения изображений.',
-        [
-          { text: 'OK', onPress: () => requestPermission() },
-          { text: 'Отмена', style: 'cancel' },
-        ]
-      );
-      return;
-    }
-
-    try {
-      // Захватываем изображение с помощью react-native-view-shot
-      const localUri = await captureRef(imageRef, {
-        format: 'png',
-        quality: 1,
-      });
-
-      // Проверяем, что URI корректен
-      console.log('Captured URI:', localUri);
-
-      // Сохраняем в медиа-библиотеку
-      await MediaLibrary.saveToLibraryAsync(localUri);
-      Alert.alert('Изображение успешно сохранено!');
-    } catch (e) {
-      console.log('Ошибка сохранения:', e);
-      Alert.alert('Ошибка', 'Не удалось сохранить изображение. Попробуйте снова.');
-    }
-  };
+  if (error) {
+    return (
+      <GestureHandlerRootView style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <View style={styles.imageContainer}>
-        <View ref={imageRef} collapsable={false}>
-          <ImageViewer imgSource={PlaceholderImage} selectedImage={selectedImage} />
-          {pickedEmoji && <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />}
-        </View>
-      </View>
-      {showAppOptions ? (
-        <View style={styles.optionsContainer}>
-          <View style={styles.optionsRow}>
-            <IconButton icon="refresh" label="Reset" onPress={onReset} />
-            <CircleButton onPress={onAddSticker} />
-            <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
-          </View>
-        </View>
-      ) : (
-        <View style={styles.footerContainer}>
-          <Button theme="primary" label="Choose a photo" onPress={pickImageAsync} />
-          <Button label="Use this photo" onPress={() => setShowAppOptions(true)} />
-        </View>
-      )}
-      <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
-        <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose} />
-      </EmojiPicker>
+      <Text style={styles.title}>Главные новости</Text>
+      <FlatList
+        data={articles}
+        keyExtractor={(item) => item.url}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => router.push({ pathname: '../details', params: { article: JSON.stringify(item) } })}
+          >
+            <Text style={styles.itemTitle}>{item.title}</Text>
+            <Text style={styles.itemDescription}>{item.description}</Text>
+          </TouchableOpacity>
+        )}
+      />
     </GestureHandlerRootView>
   );
 }
@@ -145,22 +65,37 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: '#25292e',
-    alignItems: 'center',
   },
-  imageContainer: {
-    flex: 1,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#fff',
   },
-  footerContainer: {
-    flex: 1 / 3,
-    alignItems: 'center',
+  item: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    backgroundColor: '#333',
+    borderRadius: 8,
+    marginBottom: 8,
   },
-  optionsContainer: {
-    position: 'absolute',
-    bottom: 80,
+  itemTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffd33d',
   },
-  optionsRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
+  itemDescription: {
+    fontSize: 14,
+    color: '#ccc',
+    marginTop: 4,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ff4444',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

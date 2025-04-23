@@ -1,9 +1,14 @@
-import { Text, View, StyleSheet } from 'react-native';
+// app/(tabs)/about.tsx
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function AboutScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>About screen</Text>
+      <Text style={styles.title}>О приложении</Text>
+      <Text style={styles.description}>
+        Это приложение позволяет просматривать новости, добавлять их в избранное и управлять списком избранного. 
+        Разработано в рамках задания AlmaU.
+      </Text>
     </View>
   );
 }
@@ -11,11 +16,17 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: '#25292e',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  text: {
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
     color: '#fff',
+  },
+  description: {
+    fontSize: 16,
+    color: '#ccc',
   },
 });
